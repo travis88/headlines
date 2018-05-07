@@ -23,9 +23,9 @@ def get_news(publication='yandex'):
             <i>{1}</i><br/>
             <p>{2}</p><br/>
         </body>
-    </html>""".format(first_article.get('title'), 
-                      first_article.get('published'),
-                      first_article.get('description'))
+    </html>""".format(first_article.get('title').encode('utf-8').decode('utf-8'), 
+                      first_article.get('published').encode('utf-8').decode('utf-8'),
+                      first_article.get('description').encode('utf-8').decode('utf-8'))
 
 if __name__ == '__main__':
     app.run(debug=True)
