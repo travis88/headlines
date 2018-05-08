@@ -13,19 +13,23 @@ RSS_FEED = {
 @app.route('/')
 @app.route('/<publication>')
 def get_news(publication='yandex'):
-    feed = feedparser.parse(RSS_FEED[publication])
-    first_article = feed['entries'][0]
-    return """
-    <html>
-        <body>
-            <h1> Yandex Movies Headlines</h1>
-            <b>{0}</b><br/>
-            <i>{1}</i><br/>
-            <p>{2}</p><br/>
-        </body>
-    </html>""".format(first_article.get('title').encode('utf-8').decode('utf-8'), 
-                      first_article.get('published').encode('utf-8').decode('utf-8'),
-                      first_article.get('description').encode('utf-8').decode('utf-8'))
+    try:
+        feed = feedparser.parse(RSS_FEED[publication]
+                                            .encode('utf-8').decode('utf-8'),)
+        first_article = feed['entries'][0]
+        return """
+        <html>
+            <body>
+                <h1> Yandex Movies Headlines</h1>
+                <b>{0}</b><br/>
+                <i>{1}</i><br/>
+                <p>{2}</p><br/>
+            </body>
+        </html>""".format(first_article.get('title'), 
+                        first_article.get('published'),
+                        first_article.get('description'))
+    except:
+        return 'exception'
 
 if __name__ == '__main__':
     app.run(debug=True)
