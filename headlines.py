@@ -1,5 +1,5 @@
 import feedparser
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, request
 
 
 app = Flask(__name__)
@@ -14,12 +14,14 @@ RSS_FEED = {
 }
 
 @app.route("/")
-@app.route("/<publ>/")
-def get_news(publ="yandex"):
-    if publ != "favicon.ico":
-        feed = feedparser.parse(RSS_FEED[publ])
-        return render_template("home.html", articles=feed['entries'])
-    return redirect('.get_news', publ)
+def get_news():
+    query = request.args.get("publ")
+    if not query or query.lower() not in RSS_FEED:
+        publ = 'yandex'
+    else:
+        publ = query.lower()
+    feed = feedparser.parse(RSS_FEED[publ])
+    return render_template("home.html", articles=feed['entries'])
 
 if __name__ == '__main__':
     app.run(debug=True)
