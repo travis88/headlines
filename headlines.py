@@ -15,11 +15,10 @@ RSS_FEED = {
 
 @app.route("/")
 @app.route("/<publ>/")
-def get_news(publ="fox"):
+def get_news(publ="yandex"):
     if publ != "favicon.ico":
         feed = feedparser.parse(RSS_FEED[publ])
-        first_article = feed['entries'][0]
-        return render_template("home.html", first_article=first_article)
+        return render_template("home.html", articles=feed['entries'])
     return redirect('.get_news', publ)
 
 if __name__ == '__main__':

@@ -8,8 +8,11 @@
 </head>
 <body>
     <h1>Headlines</h1>
-    <b>{{ first_article.get("title") }}</b>
-    <i>{{ first_article.get("published") }}</i>
-    <p>{{ first_article.get("summary") }}</p>
+    {% for article in articles %}
+        <b><a href="{{ article.link }}">{{ article.title }}</a></b><br>
+        <i>{{ article.published }}</i><br>
+        <p>{{ article.summary }}</p>
+        <hr>
+    {% endfor %}
 </body>
 </html>
