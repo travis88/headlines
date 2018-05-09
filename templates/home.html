@@ -10,7 +10,11 @@
 
 <body>
     <h1>Headlines</h1>
-    <form>
+    <h2>Current weather</h2>
+    <p>City: <b>{{ weather.city }}</b></p>
+    <p>{{ weather.description }} | {{ weather.temperature - 273.15 }}&#8451;</p>
+    <h2>Headlines</h2>
+    <form action="/" method="POST">
         <input type="text" name="publ" placeholder="search">
         <input type="submit" value="Submit">
     </form>
