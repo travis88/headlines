@@ -1,36 +1,26 @@
 import feedparser
-from flask import Flask
+from flask import Flask, render_template, redirect
 
 
 app = Flask(__name__)
 RSS_FEED = {
-    'yandex': 'https://news.yandex.ru/movies.rss',
-    'iol': 'http://rss.iol.io/iol/news',
-    'gazeta': 'https://www.gazeta.ru/export/rss/sportnews.xml',
-    'cnews': 'http://www.cnews.ru/inc/rss/news_top.xml'
+    "fox": "http://feeds.foxnews.com/foxnews/latest",
+    "habr": "https://habr.com/rss/hubs/all/",
+    "yandex": "https://news.yandex.ru/movies.rss",
+    "iol": "http://rss.iol.io/iol/news",
+    "gazeta": "https://www.gazeta.ru/export/rss/sportnews.xml",
+    "cnews": "http://www.cnews.ru/inc/rss/news_top.xml",
+    "nasa": "https://www.nasa.gov/rss/dyn/earth.rss"
 }
 
-@app.route('/')
-@app.route('/<publication>')
-def get_news(publication='yandex'):
-    feed = feedparser.parse(RSS_FEED[publication].encode('utf-8').decode('utf-8'),)
-    first_article = feed['entries'][0]
-    return """
-    <html>
-        <head>
-            <link id="site-favicon" 
-                  href="http://www.allitebooks.com/wp-content/themes/allitebooks/images/favicon.ico" 
-                  rel="shortcut icon" type="image/x-icon">
-        </head>
-        <body>
-            <h1> Yandex Movies Headlines</h1>
-            <b>{0}</b><br/>
-            <i>{1}</i><br/>
-            <p>{2}</p><br/>
-        </body>
-    </html>""".format(first_article.get('title'), 
-                      first_article.get('published'),
-                      first_article.get('description'))
+@app.route("/")
+@app.route("/<publ>/")
+def get_news(publ="fox"):
+    if publ != "favicon.ico":
+        feed = feedparser.parse(RSS_FEED[publ])
+        first_article = feed['entries'][0]
+        return render_template("home.html", first_article=first_article)
+    return redirect('.get_news', publ)
 
 if __name__ == '__main__':
     app.run(debug=True)
