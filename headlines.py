@@ -17,6 +17,13 @@ RSS_FEED = {
     "nasa": "https://www.nasa.gov/rss/dyn/earth.rss"
 }
 OPEN_WEATHER_MAP_KEY = os.environ.get('OPEN_WEATHER_MAP_KEY')
+OPEN_EXCHANGE_RATES = os.environ.get('OPEN_EXCHANGE_RATES')
+DEFAULTS = {
+    'publ': 'yandex',
+    'city': 'Moscow',
+    'currency_from': 'GBP',
+    'currency_to': 'USD'
+}
 
 
 def get_weather(query):
@@ -31,23 +38,55 @@ def get_weather(query):
         weather = {
             'description': parsed['weather'][0]['description'],
             'temperature': parsed['main']['temp'],
-            'city': parsed['name']
+            'city': parsed['name'],
+            'country': parsed['sys']['country']
         }
     return weather
 
 
-@app.route("/", methods=['GET', 'POST'])
-def get_news():
-    query = request.form.get('publ')
-    if not query or query not in RSS_FEED:
-        publ = 'yandex'
+def get_rate(frm, to):
+    app_url = "http://data.fixer.io/api/latest?access_key={}"
+    url = app_url.format(OPEN_EXCHANGE_RATES)
+    r = urlopen(url)
+    all_currency = r.read().decode(r.info().get_param('charset') or 'utf-8')
+    parsed = json.loads(all_currency).get('rates')
+    frm_rate = parsed.get(frm.upper())
+    to_rate = parsed.get(to.upper())
+    return to_rate/frm_rate
+
+def get_news(query):
+    if not query or query.lower() not in RSS_FEED:
+        publ = DEFAULTS['publ']
     else:
         publ = query.lower()
     feed = feedparser.parse(RSS_FEED[publ])
-    weather = get_weather('Moscow,RU')
+    return feed['entries']
+
+
+@app.route("/", methods=['GET', 'POST'])
+def home():
+    publ = request.form.get('publ')
+    articles = get_news(publ)
+    
+    city = request.form.get('city')
+    if not city:
+        city = DEFAULTS['city']
+    weather = get_weather('{},RU'.format(city))
+
+    currency_from = request.form.get('currency_from')
+    if not currency_from:
+        currency_from = DEFAULTS['currency_from']
+    currency_to = request.form.get('currency_to')
+    if not currency_to:
+        currency_to = DEFAULTS['currency_to']
+    rate = get_rate(currency_from, currency_to)
+
     return render_template("home.html", 
-                           articles=feed['entries'], 
-                           weather=weather)
+                           articles=articles, 
+                           weather=weather,
+                           currency_from=currency_from,
+                           currency_to=currency_to,
+                           rate=rate)
 
 if __name__ == '__main__':
     app.run(debug=True)
