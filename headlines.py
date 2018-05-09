@@ -21,8 +21,8 @@ OPEN_EXCHANGE_RATES = os.environ.get('OPEN_EXCHANGE_RATES')
 DEFAULTS = {
     'publ': 'yandex',
     'city': 'Moscow',
-    'currency_from': 'GBP',
-    'currency_to': 'USD'
+    'currency_from': 'USD',
+    'currency_to': 'RUB'
 }
 
 
@@ -52,7 +52,7 @@ def get_rate(frm, to):
     parsed = json.loads(all_currency).get('rates')
     frm_rate = parsed.get(frm.upper())
     to_rate = parsed.get(to.upper())
-    return to_rate/frm_rate
+    return (to_rate / frm_rate, parsed.keys())
 
 def get_news(query):
     if not query or query.lower() not in RSS_FEED:
@@ -79,14 +79,15 @@ def home():
     currency_to = request.form.get('currency_to')
     if not currency_to:
         currency_to = DEFAULTS['currency_to']
-    rate = get_rate(currency_from, currency_to)
+    rate, currencies = get_rate(currency_from, currency_to)
 
     return render_template("home.html", 
                            articles=articles, 
                            weather=weather,
                            currency_from=currency_from,
                            currency_to=currency_to,
-                           rate=rate)
+                           rate=rate,
+                           currencies=sorted(currencies))
 
 if __name__ == '__main__':
     app.run(debug=True)
