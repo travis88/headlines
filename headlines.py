@@ -2,8 +2,9 @@ import feedparser
 import json
 import os
 import urllib
+import datetime
 from urllib.request import urlopen
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, make_response
 
 
 app = Flask(__name__)
@@ -63,31 +64,46 @@ def get_news(query):
     return feed['entries']
 
 
+def get_value_with_fallback(key):
+    if request.form.get(key):
+        return request.form.get(key)
+    if request.cookies.get(key):
+        return request.cookies.get(key)
+
+
 @app.route("/", methods=['GET', 'POST'])
 def home():
-    publ = request.form.get('publ')
+    publ = get_value_with_fallback('publ')
     articles = get_news(publ)
-    
-    city = request.form.get('city')
+
+    city = get_value_with_fallback('city')
     if not city:
         city = DEFAULTS['city']
+
     weather = get_weather('{},RU'.format(city))
 
-    currency_from = request.form.get('currency_from')
+    currency_from = get_value_with_fallback('currency_from')
     if not currency_from:
         currency_from = DEFAULTS['currency_from']
-    currency_to = request.form.get('currency_to')
+    currency_to = get_value_with_fallback('currency_to')
     if not currency_to:
         currency_to = DEFAULTS['currency_to']
     rate, currencies = get_rate(currency_from, currency_to)
 
-    return render_template("home.html", 
-                           articles=articles, 
-                           weather=weather,
-                           currency_from=currency_from,
-                           currency_to=currency_to,
-                           rate=rate,
-                           currencies=sorted(currencies))
+    response = make_response(render_template('home.html',
+                                             articles=articles,
+                                             weather=weather,
+                                             currency_from=currency_from,
+                                             currency_to=currency_to,
+                                             rate=rate,
+                                             currencies=sorted(currencies)))
+    expires = datetime.datetime.now() + datetime.timedelta(days=365)
+    response.set_cookie('publ', publ, expires=expires)
+    response.set_cookie('city', city, expires=expires)
+    response.set_cookie('currency_from', currency_from, expires=expires)
+    response.set_cookie('currency_to', currency_to, expires=expires)
+    return response
+
 
 if __name__ == '__main__':
     app.run(debug=True)
